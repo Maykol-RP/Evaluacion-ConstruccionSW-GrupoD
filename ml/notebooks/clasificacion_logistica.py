@@ -1,4 +1,5 @@
 import pandas as pd
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
@@ -9,7 +10,14 @@ import seaborn as sns
 # =========================================
 # 1. CARGAR DATASET
 # =========================================
-df = pd.read_csv("ml/data/healthcare_dataset.csv")
+script_dir = Path(__file__).resolve().parent
+csv_path = script_dir.parent / "data" / "healthcare_dataset.csv"
+if not csv_path.exists():
+    csv_path = script_dir.parent.parent / "healthcare_dataset.csv"
+    if not csv_path.exists():
+        raise FileNotFoundError(f"No se encontró el dataset en {script_dir.parent / 'data' / 'healthcare_dataset.csv'} ni en {csv_path}")
+
+df = pd.read_csv(csv_path)
 
 print("Columnas del dataset:")
 print(df.columns.tolist())
@@ -79,12 +87,22 @@ modelo = LogisticRegression(max_iter=1000, class_weight="balanced")
 modelo.fit(X_train, y_train)
 
 # =========================================
-# 9. PREDICCIÓN
+# 10. COEFICIENTES
+# =========================================
+coef_df = pd.DataFrame({
+    "Variable": X.columns,
+    "Coeficiente": modelo.coef_[0]
+})
+print("\n===== COEFICIENTES DEL MODELO =====")
+print(coef_df.to_string(index=False, float_format='%.6f'))
+
+# =========================================
+# 11. PREDICCIÓN
 # =========================================
 y_pred = modelo.predict(X_test)
 
 # =========================================
-# 10. RESULTADOS
+# 12. RESULTADOS
 # =========================================
 print("\n===== MATRIZ DE CONFUSIÓN =====")
 cm = confusion_matrix(y_test, y_pred)
@@ -96,7 +114,7 @@ print("Precision:", precision_score(y_test, y_pred, zero_division=0))
 print("Recall:", recall_score(y_test, y_pred, zero_division=0))
 
 # =========================================
-# 11. VISUALIZACIÓN
+# 13. VISUALIZACIÓN
 # =========================================
 plt.figure(figsize=(8, 6))
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
@@ -105,5 +123,18 @@ sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
 plt.title('Matriz de Confusión - Clasificación Logística')
 plt.ylabel('Valor Verdadero')
 plt.xlabel('Valor Predicho')
-plt.savefig('ml/notebooks/confusion_matrix.png')
-print("\nGráfico guardado como 'ml/notebooks/confusion_matrix.png'")
+output_path = script_dir / 'confusion_matrix.png'
+output_path.parent.mkdir(parents=True, exist_ok=True)
+plt.savefig(output_path)
+print(f"\nGráfico guardado como '{output_path}'")
+
+# =========================================
+# CONCLUSIÓN
+# =========================================
+# El valor de Accuracy indica qué proporción de predicciones fue correcta sobre el conjunto de prueba.
+# Un valor alto sugiere que el modelo clasifica bien en general, pero debe evaluarse también junto a precisión y recall.
+# En este caso, si el accuracy es elevado y las métricas de precisión y recall son razonables, el modelo puede considerarse bueno,
+# aunque siempre hay que revisar si existen falsos positivos o falsos negativos importantes.
+# Se usó class_weight="balanced" porque las clases pueden estar desbalanceadas en el dataset.
+# Este parámetro ajusta automáticamente el peso de cada clase en la función de pérdida,
+# para evitar que el modelo favorezca únicamente a la clase mayoritaria.
