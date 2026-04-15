@@ -58,16 +58,29 @@ mse_multi = mean_squared_error(y, y_pred_multi)
 r2_multi = r2_score(y, y_pred_multi)
 
 print('\nRegresión Lineal Múltiple:')
+print(f"Variables usadas: {best_multi_features}")
 for feature_name, coef in zip(best_multi_features, model_multi.coef_):
     print(f"Coeficiente {feature_name}: {coef:.4f}")
 print(f"MSE regresión múltiple: {mse_multi:.2f}")
 print(f"R² regresión múltiple: {r2_multi:.4f}")
+print(f"Comparación de R²: simple={r2_simple:.4f}, múltiple={r2_multi:.4f}")
 
 if r2_multi > r2_simple:
     mejor_modelo = 'Regresión Lineal Múltiple'
 else:
     mejor_modelo = 'Regresión Lineal Simple'
 print(f"Mejor modelo según R²: {mejor_modelo}")
+
+# Graficar resultados de regresión múltiple: precio real vs precio predicho
+plt.figure(figsize=(8, 6))
+plt.scatter(y, y_pred_multi, color='purple', alpha=0.6, label='Predicciones')
+plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', linewidth=2, label='Ideal')
+plt.xlabel('Precio real')
+plt.ylabel('Precio predicho')
+plt.title('Regresión Lineal Múltiple: Predicho vs Real')
+plt.legend()
+plt.savefig('grafico_regresion_multiple.png', dpi=300)
+plt.close()
 
 # Regresión polinómica de grado 2 con la misma variable del modelo simple
 poly_transformer = PolynomialFeatures(degree=2, include_bias=False)
