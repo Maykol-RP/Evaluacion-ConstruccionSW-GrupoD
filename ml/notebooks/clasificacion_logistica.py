@@ -3,6 +3,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
 from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # =========================================
 # 1. CARGAR DATASET
@@ -73,7 +75,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 # =========================================
 # 8. MODELO DE REGRESIÓN LOGÍSTICA
 # =========================================
-modelo = LogisticRegression(max_iter=1000)
+modelo = LogisticRegression(max_iter=1000, class_weight="balanced")
 modelo.fit(X_train, y_train)
 
 # =========================================
@@ -85,9 +87,23 @@ y_pred = modelo.predict(X_test)
 # 10. RESULTADOS
 # =========================================
 print("\n===== MATRIZ DE CONFUSIÓN =====")
-print(confusion_matrix(y_test, y_pred))
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
 
 print("\n===== MÉTRICAS =====")
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print("Precision:", precision_score(y_test, y_pred, zero_division=0))
 print("Recall:", recall_score(y_test, y_pred, zero_division=0))
+
+# =========================================
+# 11. VISUALIZACIÓN
+# =========================================
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+            xticklabels=['Normal/Inconclusive', 'Abnormal'], 
+            yticklabels=['Normal/Inconclusive', 'Abnormal'])
+plt.title('Matriz de Confusión - Clasificación Logística')
+plt.ylabel('Valor Verdadero')
+plt.xlabel('Valor Predicho')
+plt.savefig('ml/notebooks/confusion_matrix.png')
+print("\nGráfico guardado como 'ml/notebooks/confusion_matrix.png'")
